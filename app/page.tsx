@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 interface BlogCard {
   id: number;
   coverImage: string;
@@ -23,11 +23,11 @@ interface Data {
 
 export default function Home() {
   const [blogCards, setBlogCards] = useState<BlogCard[]>([]);
-  const [cursor, setCursor] = useState(0);
+  const cursor = useRef(0);
   const [hasMore, setHasMore] = useState(true);
-  const fetchData = async (cursorNum: number) => {
+  const fetchData = async () => {
     const data = await fetch(
-      `http://127.0.0.1:4523/m1/5299266-4968637-default/posts?cursor=${cursorNum}`,
+      `http://127.0.0.1:4523/m1/5299266-4968637-default/posts?cursor=${cursor.current}`,
       { cache: "no-store" }
     );
     const res: HttpResponse = await data.json();
@@ -37,7 +37,7 @@ export default function Home() {
         setHasMore(false);
       } else {
         setBlogCards((prev) => [...prev, ...res.data.blogCards]);
-        setCursor(res.data.cursor);
+        cursor.current = res.data.cursor;
       }
     }
   };
@@ -48,7 +48,7 @@ export default function Home() {
         document.documentElement.offsetHeight - 300 &&
       hasMore
     ) {
-      fetchData(cursor);
+      fetchData();
     }
   };
 
@@ -60,7 +60,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    fetchData(cursor);
+    fetchData();
   }, []);
 
   return (
